@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {font-family: Arial;}
+
+  table, th, td {
+    border: solid 1px #ddd;
+    border-collapse: collapse;
+    padding: 2px 3px;
+    text-align: center;
+  }
+  th {
+    font-weight:bold;
+  }
+
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+  
+
+}
+.form-2cols {
+  column-count: 2;
+  column-gap: 40px;
+  column-rule-style: solid;
+  column-rule-width: 1px;
+  column-rule-color: lightblue;
+}  
+
+  .alert {
+    width: 80vw;
+    margin: 2rem auto;
+    background-color: #d4edda;
+    color: #155724;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.25rem;
+    display: none;
+  }
+
+  label {
+    display: inline-block;
+    width: 140px;
+    text-align: right;
+  }​
+  aside {
+    width: 30%;
+    padding-left: 15px;
+    margin-left: 15px;
+    float: right;
+    font-style: italic;
+    background-color: white;
+    
+  }
+  /* ========MEDIA QUERIES======== */
+  @media screen and (min-width: 768px) {
+    #save-later-form,
+    .alert {
+      width: 60vw;
+    }
+  }
+  
+  @media screen and (min-width: 992px) {
+    #save-later-form,
+    .alert {
+      width: 40vw;
+    }
+  }
+  #container {
+    margin: 0px auto;
+    width: 200px;
+    height: 200px;
+    border: 10px #333 solid;
+  }
+  #videoElement {
+    width: 200px;
+    height: 200px;
+    background-color: #666;
+  }
+
+
+</style>
+</head>
+<body>
+
+<h2>Health Camp</h2>
+<p>Click on the buttons inside the tabbed menu:</p>
+
+<div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'Demographics')">Demographics</button>
+  <button class="tablinks" onclick="openTab(event, 'Health Vitals')">Health Vitals</button>
+  <button class="tablinks" onclick="openTab(event, 'Reports')">Reports</button>
+</div>
+
+<div id="Demographics" class="tabcontent">
+
+  
+  <h3>Demographics</h3>
+  <div class="alert"></div>
+  <form id = "save-demographics">
+
+    <div class="form-2cols">
+      
+      
+      <label for="fname">First name:</label>
+      <input type="text" id="fname" name="fname" required><br><br>
+      <label for="lname">Last name:</label>
+      <input type="text" id="lname" name="lname" required><br><br>
+      
+      <label for="gender">Gender:</label>
+      <select name="gender" id="gender" tabindex="0" >
+        <option value="">Select an option</option>
+        <option value="female">Female</option>
+        <option value="male">Male </option>
+        <option value="other">Other</option>
+      </select>
+      <br><br>
+      
+      <label for="age">Age:</label>
+      <input type="text" id="age" name="age" required><br><br>
+      <label for="notes">Notes or Other details:</label>
+      <input type="text" id="notes" name="notes" required><br><br><br>
+      
+    
+      <!-- Stream video via webcam -->
+      <div class="video-wrap">
+        <video id="video" playsinline autoplay></video>
+      </div>
+      
+      <!-- Trigger canvas web API -->
+      <div class="controller">
+        <button id="snap">Capture</button>
+      </div>
+      
+      <!-- Webcam video snapshot -->
+      <canvas id="canvas" width="200" height="200"></canvas>
+      
+    </div>
+
+    <button type="submit" id="save">SAVE</button>
+
+  </form>
+  
+
+  
+
+</div>
+
+<div id="Health Vitals" class="tabcontent">
+  <h3>Health Vitals</h3>
+  <div class="alert"></div>
+  <form id = "save-healthvitals">
+  <div class="form-2cols">
+  <label for="height">Height:</label>
+  <input type="text" id="height" name="height"><br><br>
+  <label for="weight">Weight:</label>
+  <input type="text" id="weight" name="weight"><br><br>
+  <label for="body temperature">Body Temperature:</label>
+  <input type="text" id="body temperature" name="body temperature"><br><br>
+  <label for="pulse rate">Pulse Rate:</label>
+  <input type="text" id="pulse rate" name="pulse rate"><br><br>
+  <label for="BP">BP:</label>
+  <input type="text" id="BP" name="BP"><br><br>
+    <p>Medications: </p>
+    <textarea id="Medications" name="Medications" rows="4" cols="50" style="display: inline-flex"></textarea>
+    <p>Notes: </p>
+    <textarea id="Notes" name="Notes" rows="4" cols="50" style="display: inline-flex"></textarea>
+    
+  
+  </div>
+    <button type="submit" id="save2">SAVE</button>
+  </form>
+  
+  
+</div>
+
+<div id="Reports" class="tabcontent">
+  <h3>Patients details: </h3>
+  <p id='showData'></p>
+  <p id='showData2'></p>
+  <input type='button' onclick='tableFromJson()' 
+    value='Refresh data' />
+  
+</div>
+
+<script>
+function openTab(evt, cityName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(cityName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+</script>
+  
+  <script>
+    // form.js
+    
+    const formId1 = "save-demographics"; // ID of the forms
+    const formId2 = "save-healthvitals";
+
+    const formIdentifier =  `demographics`; // Identifier used to identify the form
+    const formIdentifier2 = `healthVitals`;
+  
+    const saveButton = document.querySelector("#save"); // select save button
+    const saveButtonVitals = document.querySelector("#save2");
+    const captureButton = document.querySelector("#capture");
+    const alertBox = document.querySelector(".alert"); // select alert display div
+
+    let form = document.querySelector(`#${formId1}`); // select form
+    let formElements = form.elements; // get the elements in the form
+    
+    let form2 = document.querySelector(`#${formId2}`); // select form
+    let formElements2 = form2.elements;
+    
+    saveButton.onclick = event => {
+      console.log("capture button clicked")
+    };
+      
+
+    const getFormData = () => {
+      let data = { [formIdentifier]: {} }; // create an empty object with the formIdentifier as the key and an empty object as its value
+      for (const element of formElements) {
+        if (element.name.length > 0) {
+          data[formIdentifier][element.name] = element.value;
+        }
+      }
+      return data;
+    };
+    const getFormDataVitals = () => {
+      let dataVitals = { [formIdentifier2]: {} }; // create an empty object with the formIdentifier as the key and an empty object as its value
+      for (const element of formElements2) {
+        if (element.name.length > 0) {
+          dataVitals[formIdentifier2][element.name] = element.value;
+        }
+      }
+      return dataVitals;
+    };
+    
+    saveButton.onclick = event => {
+      console.log("save button clicked")
+      event.preventDefault();
+      data = getFormData();
+      //console.log(data[formIdentifier]);
+      var currData = localStorage.getItem(formIdentifier);
+      console.log("-----");
+      console.log(currData);
+      console.log("-----");
+      
+      if (currData !== null){
+        currData = currData.substring(0, currData.length - 1) + ",";
+      } else {
+        currData = "[";
+      }
+      //console.log("here is the current data :" + currData)
+      
+      var newDataDemo = currData + JSON.stringify(data[formIdentifier]);
+      //console.log("EDDY ASKED "+newDataDemo);
+      
+      newDataDemo = newDataDemo.substring(0, newDataDemo.length - 1)  + ", \"image\":\" " + sessionStorage.getItem("image") + "\"}";
+      //console.log("new data" + newDataDemo);
+      
+      
+      localStorage.removeItem(formIdentifier)
+
+      
+      localStorage.setItem(formIdentifier, newDataDemo + "]");
+      //console.log(localStorage.getItem(formIdentifier));
+      const message = "Form draft has been saved!";
+      displayAlert(message);
+    };
+    
+
+    saveButtonVitals.onclick = event => {
+      console.log("save button vitals clicked")
+      event.preventDefault();
+      dataVitals = getFormDataVitals();
+      var currDataVitals = localStorage.getItem(formIdentifier2);
+      if (currDataVitals !== null){
+        currDataVitals = currDataVitals.substring(0, currDataVitals.length - 1) + ",";
+      } else {
+        currDataVitals = "[";
+      }
+      //console.log(currDataVitals)
+      
+      var newData = currDataVitals.concat( JSON.stringify(dataVitals[formIdentifier2])) + "]";
+      localStorage.removeItem(formIdentifier2)
+      localStorage.setItem(formIdentifier2, newData);
+      
+      
+      //console.log(localStorage.getItem(formIdentifier2));
+      const message2 = "Form draft has been saved!";
+            displayAlert(message2);
+    };
+
+    const displayAlert = message => {
+      alertBox.innerText = message; // add the message into the alert box
+      alertBox.style.display = "block"; // make the alert box visible
+      setTimeout(function() {
+        alertBox.style.display = "none"; // hide the alert box after 1 second
+      }, 1000);
+    };
+    
+    //streaming webcam video
+    'use strict';
+    
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const snap = document.getElementById("snap");
+    const errorMsgElement = document.querySelector('span#errorMsg');
+    
+    const constraints = {
+      audio: true,
+      video: {
+        width: 200, height: 200
+      }
+    };
+    
+    // Access webcam
+    async function init() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        handleSuccess(stream);
+      } catch (e) {
+        errorMsgElement.innerHTML = `navigator.getUserMedia error:${e.toString()}`;
+      }
+    }
+    
+    // Success
+    function handleSuccess(stream) {
+      window.stream = stream;
+      video.srcObject = stream;
+    }
+    
+    init();
+    
+    snap.onclick = event => {
+      console.log("capture button vitals clicked")
+      event.preventDefault();
+      var context = canvas.getContext('2d');
+      console.log("here is the video I'm suffering upon:")
+      context.drawImage(video, 0, 0, 200, 200);
+      //        console.log(context.canvas.toDataURL());
+      sessionStorage.setItem("image", context.canvas.toDataURL());
+
+    };
+    
+    
+    let tableFromJson = () => {
+         	// the json data.
+          console.log(localStorage.getItem(formIdentifier));
+             const demoData = JSON.parse(localStorage.getItem(formIdentifier));
+              
+              if (demoData === null) { return }
+              
+    
+             // Extract value from table header. 
+             
+             let col = [];
+             for (let i = 0; i < demoData.length; i++) {
+                 for (let key in demoData[i]) {
+                     if (col.indexOf(key) === -1) {
+                         col.push(key);
+                     }
+                 }
+             }
+    
+             // Create a table.
+             const table = document.createElement("table");
+    
+             // Create table header row using the extracted headers above.
+             let tr = table.insertRow(-1);                   // table row.
+    
+             for (let i = 0; i < col.length; i++) {
+                 let th = document.createElement("th");      // table header.
+                 th.innerHTML = col[i];
+                 tr.appendChild(th);
+             }
+    
+             // add json data to the table as rows.
+             for (let i = 0; i < demoData.length; i++) {
+    
+                 tr = table.insertRow(-1);
+    
+                 for (let j = 0; j < col.length; j++) {
+                     let tabCell = tr.insertCell(-1);
+                      if (j === col.length - 1) {
+                        console.log("image or not? "+ demoData[i][col[j]]);
+                        tabCell.innerHTML = `<img src =` + demoData[i][col[j]] + `></img>`;
+                      } else {
+                        tabCell.innerHTML = demoData[i][col[j]];
+                      }
+                      
+                      
+                 }
+             }
+    
+             // Now, add the newly created table with json data, to a container.
+             const divShowData = document.getElementById('showData');
+             divShowData.innerHTML = "";
+             divShowData.appendChild(table);
+              
+      const vitalsData = JSON.parse(localStorage.getItem(formIdentifier2));
+      
+      // Extract value from table header. 
+      
+      let col2 = [];
+      for (let i = 0; i < vitalsData.length; i++) {
+        for (let key in vitalsData[i]) {
+          if (col2.indexOf(key) === -1) {
+            col2.push(key);
+          }
+        }
+      }
+      
+      // Create a table.
+      const table2 = document.createElement("table");
+      
+      // Create table header row using the extracted headers above.
+      let tr2 = table2.insertRow(-1);                   // table row.
+      
+      for (let i = 0; i < col2.length; i++) {
+        let th2 = document.createElement("th");      // table header.
+        th2.innerHTML = col2[i];
+        tr2.appendChild(th2);
+      }
+      
+      // add json data to the table as rows.
+      for (let i = 0; i < vitalsData.length; i++) {
+        
+        tr2 = table2.insertRow(-1);
+        
+        for (let j = 0; j < col2.length; j++) {
+          let tabCell2 = tr2.insertCell(-1);
+          tabCell2.innerHTML = vitalsData[i][col2[j]];
+        }
+      }
+      
+      // Now, add the newly created table with json data, to a container.
+      const divShowData2 = document.getElementById('showData2');
+      divShowData2.innerHTML = "";
+      divShowData2.appendChild(table2);
+         }
+      tableFromJson();
+      
+  </script>
+   
+</body>
+</html> 
