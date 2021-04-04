@@ -70,6 +70,15 @@ body {font-family: Arial;}
     border-radius: 0.25rem;
     display: none;
   }
+.alert2 {
+  width: 80vw;
+  margin: 2rem auto;
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.25rem;
+  display: none;
+}
 
   label {
     display: inline-block;
@@ -91,11 +100,17 @@ body {font-family: Arial;}
     .alert {
       width: 60vw;
     }
+    .alert2 {
+      width: 60vw;
+    }
   }
   
   @media screen and (min-width: 992px) {
     #save-later-form,
     .alert {
+      width: 40vw;
+    }
+    .alert2 {
       width: 40vw;
     }
   }
@@ -127,19 +142,19 @@ body {font-family: Arial;}
 
 <div id="Demographics" class="tabcontent">
 
-  
+
   <h3>Demographics</h3>
   <div class="alert"></div>
   <form id = "save-demographics">
 
     <div class="form-2cols">
-      
-      
+
+
       <label for="fname">First name:</label>
       <input type="text" id="fname" name="fname" required><br><br>
       <label for="lname">Last name:</label>
       <input type="text" id="lname" name="lname" required><br><br>
-      
+
       <label for="gender">Gender:</label>
       <select name="gender" id="gender" tabindex="0" >
         <option value="">Select an option</option>
@@ -148,72 +163,69 @@ body {font-family: Arial;}
         <option value="other">Other</option>
       </select>
       <br><br>
-      
+
       <label for="age">Age:</label>
       <input type="text" id="age" name="age" required><br><br>
       <label for="notes">Notes or Other details:</label>
       <input type="text" id="notes" name="notes" required><br><br><br>
-      
-    
+
       <!-- Stream video via webcam -->
       <div class="video-wrap">
         <video id="video" playsinline autoplay></video>
       </div>
-      
+
       <!-- Trigger canvas web API -->
       <div class="controller">
         <button id="snap">Capture</button>
       </div>
-      
       <!-- Webcam video snapshot -->
       <canvas id="canvas" width="200" height="200"></canvas>
-      
     </div>
-
     <button type="submit" id="save">SAVE</button>
-
+    <button type="submit" id="send">SEND</button>
   </form>
-  
-
-  
-
 </div>
 
 <div id="Health Vitals" class="tabcontent">
   <h3>Health Vitals</h3>
-  <div class="alert"></div>
+  <div class="alert2"></div>
+
   <form id = "save-healthvitals">
   <div class="form-2cols">
   <label for="height">Height:</label>
   <input type="text" id="height" name="height"><br><br>
   <label for="weight">Weight:</label>
   <input type="text" id="weight" name="weight"><br><br>
-  <label for="body temperature">Body Temperature:</label>
-  <input type="text" id="body temperature" name="body temperature"><br><br>
-  <label for="pulse rate">Pulse Rate:</label>
-  <input type="text" id="pulse rate" name="pulse rate"><br><br>
+  <label for="bodyTemperature">Body Temperature:</label>
+  <input type="text" id="bodyTemperature" name="bodyTemperature"><br><br>
+  <label for="pulseRate">Pulse Rate:</label>
+  <input type="text" id="pulseRate" name="pulseRate"><br><br>
   <label for="BP">BP:</label>
   <input type="text" id="BP" name="BP"><br><br>
     <p>Medications: </p>
     <textarea id="Medications" name="Medications" rows="4" cols="50" style="display: inline-flex"></textarea>
     <p>Notes: </p>
     <textarea id="Notes" name="Notes" rows="4" cols="50" style="display: inline-flex"></textarea>
-    
-  
+
+
   </div>
     <button type="submit" id="save2">SAVE</button>
+    <button type="submit" id="send2">SEND</button>
   </form>
-  
-  
+
 </div>
 
 <div id="Reports" class="tabcontent">
-  <h3>Patients details: </h3>
+  <h3>Stored locally: </h3>
   <p id='showData'></p>
   <p id='showData2'></p>
-  <input type='button' onclick='tableFromJson()' 
-    value='Refresh data' />
-  
+  <input type='button' onclick='tableFromJson()'
+    value='Refresh local data table' />
+  <h3>Stored in the database: </h3>
+  <p id='showData3'></p>
+  <p id='showData4'></p>
+  <input type='button' onclick='tableFromDatabase()'
+         value='Refresh database data table' />
 </div>
 
 <script>
@@ -242,20 +254,58 @@ function openTab(evt, cityName) {
     const formIdentifier2 = `healthVitals`;
   
     const saveButton = document.querySelector("#save"); // select save button
+    const sendButton = document.querySelector("#send");
     const saveButtonVitals = document.querySelector("#save2");
+    const sendButtonVitals = document.querySelector("#send2");
     const captureButton = document.querySelector("#capture");
     const alertBox = document.querySelector(".alert"); // select alert display div
-
+    const alertBox2 = document.querySelector(".alert2")
     let form = document.querySelector(`#${formId1}`); // select form
     let formElements = form.elements; // get the elements in the form
-    
     let form2 = document.querySelector(`#${formId2}`); // select form
     let formElements2 = form2.elements;
-    
-    saveButton.onclick = event => {
-      console.log("capture button clicked")
-    };
-      
+
+    window.addEventListener("load" , function () {
+      setInterval(function(){
+        //code goes here that will be run every 5 seconds.
+        if (localStorage.getItem(formIdentifier) !==  null && localStorage.getItem(formIdentifier) !== undefined && localStorage.getItem(formIdentifier) !== "" ){
+          try
+          {
+            var httpRequest = new XMLHttpRequest();
+            httpRequest.onreadystatechange = handleDemoResponse;
+            httpRequest.open("POST", "http://localhost:3000/newDemographicsEntry");
+            httpRequest.setRequestHeader( "Content-Type", "application/json" );
+            var objs = JSON.parse(localStorage.getItem(formIdentifier));
+            console.log("======");
+            console.log(JSON.stringify(objs));
+            console.log("======");
+            httpRequest.send(JSON.stringify(objs));
+          } catch (e) {
+            const message = "Your demographics data was NOT saved in the database!";
+            displayAlert(message);
+          }
+        }
+
+        if (localStorage.getItem(formIdentifier2) !==  null && localStorage.getItem(formIdentifier2) !== undefined && localStorage.getItem(formIdentifier2) !== "" ){
+          try
+          {
+            var httpRequest = new XMLHttpRequest();
+            httpRequest.onreadystatechange = handleVitalsResponse;
+            httpRequest.open("POST", "http://localhost:3000/newVitalsEntry");
+            httpRequest.setRequestHeader( "Content-Type", "application/json" );
+            var objs = JSON.parse(localStorage.getItem(formIdentifier2));
+            console.log("======");
+            console.log(JSON.stringify(objs));
+            console.log("======");
+            httpRequest.send(JSON.stringify(objs));
+          } catch (e) {
+            const message = "Your vitals data was NOT saved in the database!";
+            displayAlert(message);
+          }
+        }
+
+      }, 5000);
+    })
 
     const getFormData = () => {
       let data = { [formIdentifier]: {} }; // create an empty object with the formIdentifier as the key and an empty object as its value
@@ -279,64 +329,115 @@ function openTab(evt, cityName) {
     saveButton.onclick = event => {
       console.log("save button clicked")
       event.preventDefault();
-      data = getFormData();
-      //console.log(data[formIdentifier]);
+      var data = getFormData();
       var currData = localStorage.getItem(formIdentifier);
       console.log("-----");
       console.log(currData);
       console.log("-----");
       
-      if (currData !== null){
+      if (currData !== null && currData !== ""){
         currData = currData.substring(0, currData.length - 1) + ",";
       } else {
         currData = "[";
       }
-      //console.log("here is the current data :" + currData)
-      
-      var newDataDemo = currData + JSON.stringify(data[formIdentifier]);
-      //console.log("EDDY ASKED "+newDataDemo);
-      
-      newDataDemo = newDataDemo.substring(0, newDataDemo.length - 1)  + ", \"image\":\" " + sessionStorage.getItem("image") + "\"}";
-      //console.log("new data" + newDataDemo);
-      
-      
-      localStorage.removeItem(formIdentifier)
 
-      
+      var newDataDemo = currData + JSON.stringify(data[formIdentifier]);
+      newDataDemo = newDataDemo.substring(0, newDataDemo.length - 1)  + ", \"image\":\" " + sessionStorage.getItem("image") + "\"}";
+      localStorage.removeItem(formIdentifier)
       localStorage.setItem(formIdentifier, newDataDemo + "]");
-      //console.log(localStorage.getItem(formIdentifier));
-      const message = "Form draft has been saved!";
+      const message = "Your demographics data was saved in the local storage!";
       displayAlert(message);
+      console.log(localStorage.getItem(formIdentifier));
     };
-    
+
+    sendButton.onclick = event => {
+      event.preventDefault();
+      try
+      {
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.onreadystatechange = handleDemoResponse;
+        httpRequest.open("POST", "http://localhost:3000/newDemographicsEntry");
+        httpRequest.setRequestHeader( "Content-Type", "application/json" );
+        var objs = JSON.parse(localStorage.getItem(formIdentifier));
+        console.log("======");
+        console.log(JSON.stringify(objs));
+        console.log("======");
+        httpRequest.send(JSON.stringify(objs));
+      } catch (e) {
+        const message = "Your demographics data was NOT saved in the database!";
+        displayAlert(message);
+      }
+    }
+
+    function handleDemoResponse(e) {
+      if (this.readyState == 4 && this.status == 200) {
+        localStorage.setItem(formIdentifier, "");
+        const message = "Your demographics data was sent to the database!";
+        displayAlert(message);
+      }
+
+    }
 
     saveButtonVitals.onclick = event => {
       console.log("save button vitals clicked")
       event.preventDefault();
-      dataVitals = getFormDataVitals();
+      var dataVitals = getFormDataVitals();
       var currDataVitals = localStorage.getItem(formIdentifier2);
-      if (currDataVitals !== null){
+      if (currDataVitals !== null && currDataVitals !== ""){
         currDataVitals = currDataVitals.substring(0, currDataVitals.length - 1) + ",";
       } else {
         currDataVitals = "[";
       }
-      //console.log(currDataVitals)
-      
+
       var newData = currDataVitals.concat( JSON.stringify(dataVitals[formIdentifier2])) + "]";
       localStorage.removeItem(formIdentifier2)
       localStorage.setItem(formIdentifier2, newData);
-      
-      
-      //console.log(localStorage.getItem(formIdentifier2));
-      const message2 = "Form draft has been saved!";
-            displayAlert(message2);
+      const message3 = "Your vitals data was saved in the local storage!";
+      displayAlert2(message3);
+
     };
+
+    sendButtonVitals.onclick = event => {
+      event.preventDefault();
+      try
+      {
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.onreadystatechange = handleVitalsResponse;
+        httpRequest.open("POST", "http://localhost:3000/newVitalsEntry");
+        httpRequest.setRequestHeader( "Content-Type", "application/json" );
+        var objs = JSON.parse(localStorage.getItem(formIdentifier2));
+        console.log("======");
+        console.log(JSON.stringify(objs));
+        console.log("======");
+        httpRequest.send(JSON.stringify(objs));
+      } catch (e) {
+        const message = "Your vitals data was NOT saved in the database!";
+        displayAlert(message);
+      }
+    }
+
+    function handleVitalsResponse(e) {
+      if (this.readyState == 4 && this.status == 200) {
+        localStorage.setItem(formIdentifier2, "");
+        const message = "Your vitals data was sent to the database!";
+        displayAlert(message);
+      }
+
+    }
 
     const displayAlert = message => {
       alertBox.innerText = message; // add the message into the alert box
       alertBox.style.display = "block"; // make the alert box visible
       setTimeout(function() {
         alertBox.style.display = "none"; // hide the alert box after 1 second
+      }, 1000);
+    };
+
+    const displayAlert2 = message => {
+      alertBox2.innerText = message; // add the message into the alert box
+      alertBox2.style.display = "block"; // make the alert box visible
+      setTimeout(function() {
+        alertBox2.style.display = "none"; // hide the alert box after 1 second
       }, 1000);
     };
     
@@ -379,20 +480,21 @@ function openTab(evt, cityName) {
       var context = canvas.getContext('2d');
       console.log("here is the video I'm suffering upon:")
       context.drawImage(video, 0, 0, 200, 200);
-      //        console.log(context.canvas.toDataURL());
       sessionStorage.setItem("image", context.canvas.toDataURL());
-
     };
-    
-    
+
     let tableFromJson = () => {
          	// the json data.
           console.log(localStorage.getItem(formIdentifier));
              const demoData = JSON.parse(localStorage.getItem(formIdentifier));
               
-              if (demoData === null) { return }
-              
-    
+              if (demoData === null || demoData === "") {
+                const divShowData = document.getElementById('showData');
+                // divShowData.innerHTML = "";
+                while (divShowData.firstChild) {
+                  divShowData.removeChild(divShowData.firstChild);
+                }
+                return }
              // Extract value from table header. 
              
              let col = [];
@@ -429,8 +531,6 @@ function openTab(evt, cityName) {
                       } else {
                         tabCell.innerHTML = demoData[i][col[j]];
                       }
-                      
-                      
                  }
              }
     
@@ -479,8 +579,151 @@ function openTab(evt, cityName) {
       const divShowData2 = document.getElementById('showData2');
       divShowData2.innerHTML = "";
       divShowData2.appendChild(table2);
-         }
-      tableFromJson();
+    }
+
+    let tableFromDatabase = () => {
+      // the json data.
+      let demoData = {}
+      try
+      {
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.open("POST", "http://localhost:3000/getDemoData");
+        httpRequest.setRequestHeader( "Content-Type", "application/json" );
+        httpRequest.onreadystatechange  = function() {
+
+          if (this.readyState !== 4) {
+            return;
+          }
+
+          if (this.status !== 200) {
+            return;
+          }
+
+          demoData = JSON.parse(this.response);
+
+          if (demoData === null || demoData === "" ) {
+            const divShowData = document.getElementById('showData');
+            // divShowData.innerHTML = "";
+            while (divShowData.firstChild) {
+              divShowData.removeChild(divShowData.firstChild);
+            }
+            return }
+
+          // Extract value from table header.
+          let col = [];
+          for (let i = 0; i < demoData.length; i++) {
+            for (let key in demoData[i]) {
+              if (col.indexOf(key) === -1) {
+                col.push(key);
+              }
+            }
+          }
+
+          // Create a table.
+          const table = document.createElement("table");
+
+          // Create table header row using the extracted headers above.
+          let tr = table.insertRow(-1);                   // table row.
+
+          for (let i = 0; i < col.length; i++) {
+            let th = document.createElement("th");      // table header.
+            th.innerHTML = col[i];
+            tr.appendChild(th);
+          }
+
+          // add json data to the table as rows.
+          for (let i = 0; i < demoData.length; i++) {
+
+            tr = table.insertRow(-1);
+
+            for (let j = 0; j < col.length; j++) {
+              let tabCell = tr.insertCell(-1);
+              if (j === col.length - 1) {
+                console.log("image or not? "+ demoData[i][col[j]]);
+                tabCell.innerHTML = `<img src =` + demoData[i][col[j]] + `></img>`;
+              } else {
+                tabCell.innerHTML = demoData[i][col[j]];
+              }
+            }
+          }
+
+          // Now, add the newly created table with json data, to a container.
+          const divShowData3 = document.getElementById('showData3');
+          divShowData3.innerHTML = "";
+          divShowData3.appendChild(table);
+
+          let vitalsData = {}
+
+          try
+          {
+            var httpRequest = new XMLHttpRequest();
+            httpRequest.open("POST", "http://localhost:3000/getVitalsData");
+            httpRequest.setRequestHeader( "Content-Type", "application/json" );
+            httpRequest.onreadystatechange  = function() {
+              if (this.readyState !== 4) {
+                return;
+              }
+
+              if (this.status !== 200) {
+                return;
+              }
+
+              vitalsData = JSON.parse(this.response);
+
+              let col2 = [];
+              for (let i = 0; i < vitalsData.length; i++) {
+                for (let key in vitalsData[i]) {
+                  if (col2.indexOf(key) === -1) {
+                    col2.push(key);
+                  }
+                }
+              }
+
+              // Create a table.
+              const table2 = document.createElement("table");
+
+              // Create table header row using the extracted headers above.
+              let tr2 = table2.insertRow(-1);                   // table row.
+
+              for (let i = 0; i < col2.length; i++) {
+                let th2 = document.createElement("th");      // table header.
+                th2.innerHTML = col2[i];
+                tr2.appendChild(th2);
+              }
+
+              // add json data to the table as rows.
+              for (let i = 0; i < vitalsData.length; i++) {
+
+                tr2 = table2.insertRow(-1);
+
+                for (let j = 0; j < col2.length; j++) {
+                  let tabCell2 = tr2.insertCell(-1);
+                  tabCell2.innerHTML = vitalsData[i][col2[j]];
+                }
+              }
+
+              // Now, add the newly created table with json data, to a container.
+              const divShowData4 = document.getElementById('showData4');
+              divShowData4.innerHTML = "";
+              divShowData4.appendChild(table2);
+
+            };
+
+            httpRequest.send(null);
+          }catch {
+            console.log("Could not fetch demographics data from the server")
+          }
+
+          // Extract value from table header.
+
+        };
+        httpRequest.send(null);
+      }catch {
+        console.log("Could not fetch demographics data from the server")
+      }
+
+
+    }
       
   </script>
    
